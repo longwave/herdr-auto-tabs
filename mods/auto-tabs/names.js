@@ -2,7 +2,7 @@
 // sets, a terminal tab after its running program, or its folder at the prompt.
 // Leaves a tab alone once you rename it yourself.
 
-import { spaces, panes, shared, setShared, run } from "herdr";
+import { spaces, panes, shared, setShared, run, home } from "herdr";
 
 // Names the new-tab menu gives agent tabs; we may replace these.
 // shortcut: only Claude Code's default name, add others if more agents set titles.
@@ -10,16 +10,23 @@ const DEFAULTS = new Set(["Claude Code"]);
 const KEY = "tab-titles.set"; // tab id -> the name we gave it
 
 function nameFor(p) {
-  // Claude prefixes a spinner or ✳ while working.
-  if (p.app === "claude-code") return (p.title ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+  if (p.app === "claude-code") {
+    // Claude prefixes a spinner or ✳ while working.
+    const title = (p.title ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+    // On Windows the title is briefly the program's path (C:\...\pwsh.exe) before Claude sets one.
+    return /^[a-z]:[\\/]|\.exe$/i.test(title) ? null : title;
+  }
   if (!p.program?.shell) return p.program?.name;
   if (!p.cwd) return null;
-  return p.cwd === homeOf(p.cwd) ? "~" : p.cwd.split("/").filter(Boolean).pop();
+  return isHome(p.cwd) ? "~" : p.cwd.split(/[\\/]/).filter(Boolean).pop();
 }
 
-// shortcut: assumes /home/<user> or /root homes, read $HOME if remote machines differ.
-function homeOf(cwd) {
-  return cwd.match(/^\/home\/[^/]+|^\/root/)?.[0];
+// shortcut: assumes /home/<user> or /root homes, or this computer's home(); read $HOME if remote machines differ.
+function isHome(cwd) {
+  if (cwd === cwd.match(/^\/home\/[^/]+|^\/root/)?.[0]) return true;
+  // Windows paths may differ from home() in separators, case or a trailing slash.
+  const norm = s => s.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+  try { return norm(cwd) === norm(home()); } catch { return false; }
 }
 
 export function syncNames() {

@@ -69,7 +69,7 @@ The mod checks every tab every 3 seconds and names it from one pane: the tab's C
 - **`tab.rename` sets `named`**, so after the first rename the mod can't use `named` alone to tell its own names from yours. That is why it stores the names it gave.
 - **Program names only.** `panes()` gives the program's display name but not its command line, so `python3 crawl.py` shows as "Python".
 - **Claude's early title.** Until Claude sets a topic, its title is often the folder name, so a new Claude tab may show that briefly.
-- **Home folders** are found by the pattern `/home/<user>` or `/root`. A remote machine with another home path shows its folder name instead of `~`.
+- **Home folders** are found by the pattern `/home/<user>` or `/root`, or by matching this computer's `home()` in any case or separator (`C:\Users\<name>` on Windows). A remote machine with another home path shows its folder name instead of `~`.
 - **Only "Claude Code" counts as a default name.** Tabs opened from the new-tab menu for other agents keep the agent's name.
 - **Runs only while the bar is in the layout.** If a layout shows the bar twice, both copies rename tabs; the second finds nothing left to do.
 
